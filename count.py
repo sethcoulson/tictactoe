@@ -15,7 +15,7 @@ def equiv( b:tuple ):
             rotate( rotate( reflect(b) )),
             rotate( rotate( rotate( reflect(b)))) ] )
 
-def next_moves( b ):
+def next_moves( b: tuple ):
     rv = []
 
     if not terminal_state( b )[ "terminal" ]:
