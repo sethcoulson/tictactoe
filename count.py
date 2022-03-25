@@ -23,7 +23,7 @@ def next_moves( b ):
         xs = b.count("x")
         next = "o" if os == xs else "x"
         
-        for i in range(0, len(b) ):
+        for i in range(0, 9):
             tmp = list(b)
             if tmp[i] == "":
                 tmp[i] = next
