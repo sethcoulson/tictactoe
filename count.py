@@ -63,6 +63,7 @@ def all_game_states():
     game_states = set()
     accum( G, game_states, 0, max_level )
 
+    #Calculate equivs
     cache = dict()
     for g in game_states:
         equivs = equiv( g )
@@ -70,20 +71,27 @@ def all_game_states():
             if b not in cache.keys():
                 cache[ b ] = g
 
-    return ( game_states, cache )
+    #Calculate parents
+    parents = dict()
+    for g in game_states:
+        next = next_moves( g )
+        for n in next:
+            if n not in parents:
+                parents[n] = []
+            parents[ n ].append( g )
+
+    return ( game_states, cache, parents )
 
 
 
 #[print( x ) for x in next_moves( ("o","o","o","x","x","","","","")) ]
-#( game_states, cache ) = all_game_states()
+( game_states, cache, parents ) = all_game_states()
 
-#print( len( game_states) ,"\t", len( set(cache.values()) ))
+print( parents[ ("o","o","o", "x","x","", "","","")])
+print( len( game_states) ,"\t", len( set(cache.values()) ), "\t", len(parents))
 #uniq = list( set( cache.values() ))
 #uniq.sort( key = lambda x: x.count("x") + x.count("o"))
 
 #f = filter( lambda x: x.count("x")+x.count("o")>7, uniq )
 
 #[ print( x ) for x in list(f) ]
-
-b = ("o","","x", "","","", "","","")
-print( equiv(b))
