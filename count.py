@@ -1,10 +1,12 @@
-
+#Rotates the board 90 degrees clockwise
 def rotate( b:tuple ):
     return (b[6], b[3], b[0], b[7], b[4], b[1], b[8], b[5], b[2] )
-    
+
+#Reflects the board over the vertical axis  
 def reflect( b:tuple ):
     return (b[2], b[1], b[0], b[5], b[4], b[3], b[8], b[7], b[6] )
 
+#Retuns all the logically equivalent boards in a set
 def equiv( b:tuple ):
     return set( [b, 
             rotate(b),
@@ -14,8 +16,10 @@ def equiv( b:tuple ):
             rotate( reflect(b) ),
             rotate( rotate( reflect(b) )),
             rotate( rotate( rotate( reflect(b)))) ] )
+            
 
-def next_moves( b: tuple ):
+#Returns list of all legal nect board states
+def next_states( b: tuple ):
     rv = []
 
     if not terminal_state( b )[ "terminal" ]:
@@ -30,8 +34,9 @@ def next_moves( b: tuple ):
                 rv.append( tuple(tmp) )
     
     return rv
-    
-def terminal_state( b ):
+
+#Checks board to see if in a win or draw state
+def terminal_state( b: tuple ):
 
     if (b[0] != "") and ((b[0]==b[1] and b[1]==b[2]) or (b[0]==b[3] and b[3]==b[6]) or (b[0]==b[4] and b[4]==b[8])):
         rv = {"terminal": True, "type": "win", "player": b[0] }
@@ -42,53 +47,111 @@ def terminal_state( b ):
     elif b[2]!="" and b[2]==b[5] and b[5]==b[8]:
         rv = {"terminal": True, "type": "win", "player": b[2] }
     elif b.count("x")+b.count("o")==9:
-        rv = {"terminal": True, "type": "draw" }
+        rv = {"terminal": True, "type": "draw", "player": "" }
     else:
-        rv = {"terminal": False}
+        rv = {"terminal": False, "type": "", "player": "" }
     
     return rv
 
-def accum( game, acc, level=0, max_level=0 ):
-    if level < max_level:
-        acc.add( game )
-        moves = next_moves( game );
+#Accumulate all possible states of game
+def accum( game: tuple, acc: set ):
+    acc.add( game )
+    ns = next_states( game );
 
-        for i in moves:
-            accum( i, acc, level+1, max_level )
+    #Recurse through children
+    for n in ns:
+        accum( n, acc )
         
-
 def all_game_states():
-    max_level = 10
     G = ( "","","","","","","","","")
     game_states = set()
-    accum( G, game_states, 0, max_level )
+    accum( G, game_states )
 
-    #Calculate equivs
-    cache = dict()
+    #Calculate equivs.
+    #the eqiv_cache is a dictionary. this dictionary assigns 
+    #logicaly equivalent boards state to each board state.
+    equiv_logic = dict()
+
+    #this looks through all possible game states for tic tac toe
     for g in game_states:
+        #This finds the set of all locicaly equivelent board states using the previously
+        #noted eqiv function.
         equivs = equiv( g )
+        #if we haven't assigned a logical equivalent to this board, do so.
         for b in equivs:
-            if b not in cache.keys():
-                cache[ b ] = g
+            if b not in equiv_logic.keys():
+                equiv_logic[ b ] = g
 
     #Calculate parents
     parents = dict()
     for g in game_states:
-        next = next_moves( g )
+        next = next_states( g )
         for n in next:
             if n not in parents:
                 parents[n] = []
             parents[ n ].append( g )
 
-    return ( game_states, cache, parents )
+    return ( game_states, equiv_logic, parents )
+
+#Generate string representation of the board
+def board_str( b: tuple ):
+    #String format with constant width (1 space). Each {} is filled by arguments 
+    # to the format function. 
+    return '{:1}|{:1}|{:1}\n-+-+--\n{:1}|{:1}|{:1}\n-+-+--\n{:1}|{:1}|{:1}\n'.format( b[0],b[1],b[2],b[3],b[4],b[5],b[6],b[7],b[8] )
 
 
+#How many paths between a start board and an end board
+def find_number_of_ways_to_get_to_a_specefied_gamestate( start:tuple, end:tuple, game_states = set() ):
+    
+    if end == start:
+        return 0
+    
+    #If a game_state set is provided, check start and end    
+    if len( game_states ) and (start not in game_states or end not in game_states ):
+        return 0
 
-#[print( x ) for x in next_moves( ("o","o","o","x","x","","","","")) ]
-( game_states, cache, parents ) = all_game_states()
+    #this finds the next set of potential moves from the given boardstate for start.
+    ns = next_states( start )
+    count=0
 
-print( parents[ ("o","o","o", "x","x","", "","","")])
-print( len( game_states) ,"\t", len( set(cache.values()) ), "\t", len(parents))
+    #"n" in this case is a value in the list "ns". In the for loop, "n" starts as the first value in "ns" 
+    #and continues iterrating untill it has gone through every value.
+    for n in ns:
+
+        #This counts the number of matches for the number of paths of gameplay it
+        #takes to reach the board state that was given for "end".
+        if n == end:
+            count = count+1
+
+        #This is a example a brain blaster. If you look closely at the screen, you will see bits of brain matter i couldn't clean off. 
+        #Alternately, this is a deepth-first graph search usingh recursion!
+        else:
+            count = count+find_number_of_ways_to_get_to_a_specefied_gamestate( n, end)
+    
+    return count
+
+( game_states, equive_logicaly_unique_game_states, parents ) = all_game_states()
+
+print("the number of all game states is: " + str(len( game_states)))
+print("the number of all logicaly equivelent unque game states is: " + str(len(set(equive_logicaly_unique_game_states.values()))))
+
+#print(find_number_of_ways_to_get_to_a_specefied_gamestate( ("","o","", "","","", "","",""), ("x","o","o", "","","", "","",""), game_states))
+#print( board_str( ("o","o","o", "x","x","", "","","") ) )
+
+
+#print( count_paths( ("","","", "","","", "","",""), ("o","x","o", "x","o","x"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ", "","","")))
+
+#[print( x ) for x in next_states( ("o","o","o","x","x","","","","")) ]
+
+
+#num =dict( map( lambda x: (x[0], len(x[1]) ), parents.items() ))
+
+
+#for k in parents:
+#    if len( parents[ k]) == 5:
+#        print( k, "\t", terminal_state(k), "\n", parents[k], "\n")
+#print( len( game_states) ,"\t", len( set(cache.values()) ), "\t", len(parents))
+
 #uniq = list( set( cache.values() ))
 #uniq.sort( key = lambda x: x.count("x") + x.count("o"))
 
