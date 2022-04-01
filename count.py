@@ -1,4 +1,8 @@
 #Rotates the board 90 degrees clockwise
+from pickle import TRUE
+from tkinter import W
+
+
 def rotate( b:tuple ):
     return (b[6], b[3], b[0], b[7], b[4], b[1], b[8], b[5], b[2] )
 
@@ -18,7 +22,7 @@ def equiv( b:tuple ):
             rotate( rotate( rotate( reflect(b)))) ] )
             
 
-#Returns list of all legal nect board states
+#Returns list of all legal next board states
 def next_states( b: tuple ):
     rv = []
 
@@ -61,7 +65,37 @@ def accum( game: tuple, acc: set ):
     #Recurse through children
     for n in ns:
         accum( n, acc )
-        
+
+
+def count_paths( game: tuple, equiv: dict, use_equiv: bool, cnt:bool ) -> tuple:
+    win_count = loss_count = draw_count = 0
+    ns = next_states( game )
+    tmp = set()
+
+    if use_equiv:
+        for n in ns:
+            tmp.add( equiv[n] )
+    else:
+        tmp = ns
+
+    weight = 1 if cnt else len(tmp)
+    for n in tmp:
+        t = terminal_state(n)
+        if t["type"] == "win" and t["player"] == "o":
+            win_count = win_count+1/weight
+        elif t["type"] == "win" and t["player"]=="x":
+            loss_count = loss_count+1/weight
+        elif t["type"] == "draw":
+            draw_count = draw_count+1/weight
+        else:
+            w, l, d = count_paths(n, equiv, use_equiv, cnt)
+            win_count = win_count+w/weight
+            loss_count = loss_count+l/weight
+            draw_count = draw_count+d/weight
+
+    return win_count, loss_count, draw_count
+
+
 def all_game_states():
     G = ( "","","","","","","","","")
     game_states = set()
@@ -99,7 +133,6 @@ def board_str( b: tuple ):
     # to the format function. 
     return '{:1}|{:1}|{:1}\n-+-+--\n{:1}|{:1}|{:1}\n-+-+--\n{:1}|{:1}|{:1}\n'.format( b[0],b[1],b[2],b[3],b[4],b[5],b[6],b[7],b[8] )
 
-
 #How many paths between a start board and an end board
 def find_number_of_ways_to_get_to_a_specefied_gamestate( start:tuple, end:tuple, game_states = set() ):
     
@@ -131,9 +164,25 @@ def find_number_of_ways_to_get_to_a_specefied_gamestate( start:tuple, end:tuple,
     return count
 
 ( game_states, equive_logicaly_unique_game_states, parents ) = all_game_states()
+win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, True) 
 
-print("the number of all game states is: " + str(len( game_states)))
-print("the number of all logicaly equivelent unque game states is: " + str(len(set(equive_logicaly_unique_game_states.values()))))
+print("The number of all game states is: ", len( game_states))
+print("The number of all logicaly equivelent unque game states is: ", len(set(equive_logicaly_unique_game_states.values())))
+print()
+
+win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, False) 
+print("The number of all games: ", win + draw + loss)
+print("The fraction of winning games for 'o'is: ", win /(win + draw + loss) )
+print("The fraction of loosing games for 'o'is: ", loss/(win + draw + loss))
+print("The fraction of drawing games for 'o'is: ", draw/(win + draw + loss))
+print()
+
+win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, True, False) 
+print( "With only logically equivalent states")
+print("The number of all games: ", win + draw + loss)
+print("The fraction of winning games for 'o'is: ", win /(win + draw + loss) )
+print("The fraction of loosing games for 'o'is: ", loss/(win + draw + loss))
+print("The fraction of drawing games for 'o'is: ", draw/(win + draw + loss))
 
 #print(find_number_of_ways_to_get_to_a_specefied_gamestate( ("","o","", "","","", "","",""), ("x","o","o", "","","", "","",""), game_states))
 #print( board_str( ("o","o","o", "x","x","", "","","") ) )
