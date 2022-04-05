@@ -201,6 +201,9 @@ function draw(){
     if( woprMode ){
         wopr.hide();
     }
+    else{
+        wopr.show();
+    }
 
   dir = terminal_state(b)[ "direction" ];
   if( dir == "r1"){
