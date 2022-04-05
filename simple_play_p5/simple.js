@@ -198,6 +198,10 @@ function draw(){
   text( "1", 480, 210 );
   text( "2", 510, 210 ); 
 
+    if( woprMode ){
+        wopr.hide();
+    }
+
   dir = terminal_state(b)[ "direction" ];
   if( dir == "r1"){
     stroke(255, 204, 0);
