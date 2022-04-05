@@ -1,9 +1,11 @@
 let b = [ "","","", "","","", "","","" ];
 let b_0 = [ "","","", "","","", "","","" ];
 let num_players = 1;
+let woprMode = false;
 let slider = null;
 let myPing = null;
 let myPong = null;
+let speedvariavblethatdeterminsthespeed = 700;
 
 function preload() {
     // set the global sound formats
@@ -18,14 +20,37 @@ function setup(){
   can.mouseClicked(FunctionThatClicksWhenyouClick);
 
   button = createButton('Start Over');
-  button.position(450, 300);
-  button.mousePressed(() => (b = Array.from(b_0)));
+  button.position(450, 270);
+  button.mousePressed(startOver);
+
+  wopr = createButton('WOPR');
+  wopr.position( 460, 300);
+  wopr.mousePressed( woprToggle )
 
   slider = createSlider(0, 2, 1);
   slider.position(450, 200);
   slider.style('width', '80px');
 
   play_next_move();
+}
+
+function startOver(){
+    b = Array.from(b_0);
+    speedvariavblethatdeterminsthespeed = 700;
+    woprMode = false;
+    slider.value(1)
+}
+
+function woprToggle(){
+    woprMode = !woprMode;
+    if( woprMode ){
+        slider.value(0);
+        num_players = 0;
+    }
+    else {
+        slider.value(1);
+        num_players = 1;
+    }
 }
 
 function nextPly(){
@@ -228,6 +253,10 @@ function play_next_move(){
             b = ns[randomIndex];
         }
     }
-
-    setTimeout( play_next_move, 700);
+    
+    setTimeout( play_next_move, speedvariavblethatdeterminsthespeed);
+    if(terminal_state(b)["terminal"] && woprMode ){
+        speedvariavblethatdeterminsthespeed = 4*speedvariavblethatdeterminsthespeed/5;
+        setTimeout( () => b=Array.from(b_0), speedvariavblethatdeterminsthespeed );
+    }
 }
