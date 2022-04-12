@@ -172,6 +172,7 @@ print()
 
 win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, True) 
 print("The number of all games: ", win + draw + loss)
+print("Wins: ", win, "\t Draw: ", draw, "\t Loss: ", loss)
 win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, False) 
 print("The fraction of winning games for 'o'is: ", win /(win + draw + loss) )
 print("The fraction of loosing games for 'o'is: ", loss/(win + draw + loss))
