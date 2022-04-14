@@ -1,8 +1,7 @@
-#Rotates the board 90 degrees clockwise
 from pickle import TRUE
 from tkinter import W
 
-
+#Rotates the board 90 degrees clockwise
 def rotate( b:tuple ):
     return (b[6], b[3], b[0], b[7], b[4], b[1], b[8], b[5], b[2] )
 
@@ -43,17 +42,17 @@ def next_states( b: tuple ):
 def terminal_state( b: tuple ):
 
     if (b[0] != "") and ((b[0]==b[1] and b[1]==b[2]) or (b[0]==b[3] and b[3]==b[6]) or (b[0]==b[4] and b[4]==b[8])):
-        rv = {"terminal": True, "type": "win", "player": b[0] }
+        rv = {"terminal": True, "type": "win", "player": b[0], "score": 10 if b[0] == "o" else -10 }
     elif (b[4]!="") and ((b[3]==b[4] and b[4]==b[5]) or (b[1]==b[4] and b[4]==b[7]) or (b[2]==b[4] and b[4]==b[6])):
-        rv = {"terminal": True, "type": "win", "player": b[4] }
+        rv = {"terminal": True, "type": "win", "player": b[4], "score": 10 if b[4] == "o" else -10 }
     elif b[6]!="" and b[6]==b[7] and b[7]==b[8]:
-        rv = {"terminal": True, "type": "win", "player": b[6] }
+        rv = {"terminal": True, "type": "win", "player": b[6], "score": 10 if b[6] == "o" else -10 }
     elif b[2]!="" and b[2]==b[5] and b[5]==b[8]:
-        rv = {"terminal": True, "type": "win", "player": b[2] }
+        rv = {"terminal": True, "type": "win", "player": b[2], "score": 10 if b[2] == "o" else -10 }
     elif b.count("x")+b.count("o")==9:
-        rv = {"terminal": True, "type": "draw", "player": "" }
+        rv = {"terminal": True, "type": "draw", "player": "", "score": 0}
     else:
-        rv = {"terminal": False, "type": "", "player": "" }
+        rv = {"terminal": False, "type": "", "player": ""}
     
     return rv
 
@@ -66,7 +65,7 @@ def accum( game: tuple, acc: set ):
     for n in ns:
         accum( n, acc )
 
-
+#finds all the number of paths of gameplay that lead to a given boardstate.
 def count_paths( game: tuple, equiv: dict, use_equiv: bool, cnt:bool ) -> tuple:
     win_count = loss_count = draw_count = 0
     ns = next_states( game )
@@ -74,11 +73,15 @@ def count_paths( game: tuple, equiv: dict, use_equiv: bool, cnt:bool ) -> tuple:
 
     if use_equiv:
         for n in ns:
+            #adds the logicaly unique vertion of each of the boards next states to the set tmp
             tmp.add( equiv[n] )
     else:
+        #if the user is does not have the use equive element of this funciton engages, it just adds the board to the set tmp.
         tmp = ns
-
+    #the cnt boolean if true causes this function to disregard the chance of a boardstate being reached. if it is not true, boardstates that are more likeley
+    #to be reached are valued higher. 
     weight = 1 if cnt else len(tmp)
+
     for n in tmp:
         t = terminal_state(n)
         if t["type"] == "win" and t["player"] == "o":
@@ -163,46 +166,63 @@ def find_number_of_ways_to_get_to_a_specefied_gamestate( start:tuple, end:tuple,
     
     return count
 
-( game_states, equive_logicaly_unique_game_states, parents ) = all_game_states()
-win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, True) 
+#THE AI
+def minimax( b:tuple ) -> tuple:
 
-print("The number of all game states is: ", len( game_states))
-print("The number of all logicaly equivelent unque game states is: ", len(set(equive_logicaly_unique_game_states.values())))
-print()
+    ts = terminal_state(b)
+    #checks if the current board is a terminal state
+    if ts["terminal"] :
+        opt_score = ts["score"]
+        opt_index = None
+    else:
+        #Determnins whose turn it is
+        os = b.count("o")
+        xs = b.count("x")
+        #chooses whether to find the best possible play for x or for o depending on whose turn it is. 
+        opt = max if os == xs else min
+        #gets the next potential boardstates
+        ns = next_states(b)
+        ss = []
+        #puts all the next states in a list that is then put recusively through the funciton 
+        for n in ns:
+            ss.append(minimax(n)[0])
+             
+        opt_score = opt(ss)
+        opt_index = ss.index(opt_score)
 
-win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, True) 
-print("The number of all games: ", win + draw + loss)
-print("Wins: ", win, "\t Draw: ", draw, "\t Loss: ", loss)
-win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, False) 
-print("The fraction of winning games for 'o'is: ", win /(win + draw + loss) )
-print("The fraction of loosing games for 'o'is: ", loss/(win + draw + loss))
-print("The fraction of drawing games for 'o'is: ", draw/(win + draw + loss))
-print()
+    return opt_score, opt_index
 
-win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, True, True) 
-print( "With only logically equivalent states")
-print("The number of all games: ", win + draw + loss)
+def play_minimax():
+    b = ("","","", "","", "", "","","" )
+    while not terminal_state(b)["terminal"]:
+        score,index = minimax( b )
+        print( board_str(next_states(b)[index]), "\t", score)
+        b = ( next_states(b)[index] )
+            
 
-#print(find_number_of_ways_to_get_to_a_specefied_gamestate( ("","o","", "","","", "","",""), ("x","o","o", "","","", "","",""), game_states))
-#print( board_str( ("o","o","o", "x","x","", "","","") ) )
+#Print out a collection of the data durived from the functions above. 
+def print_data():
+    ( game_states, equive_logicaly_unique_game_states, parents ) = all_game_states()
+    win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, True) 
+
+    print("The number of all game states is: ", len( game_states))
+    print("The number of all logicaly equivelent unque game states is: ", len(set(equive_logicaly_unique_game_states.values())))
+    print()
+
+    win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, True) 
+    print("The number of all games: ", win + draw + loss)
+    print("Wins: ", win, "\t Draw: ", draw, "\t Loss: ", loss)
+    win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, False, False) 
+    print("The fraction of winning games for 'o'is: ", win /(win + draw + loss) )
+    print("The fraction of loosing games for 'o'is: ", loss/(win + draw + loss))
+    print("The fraction of drawing games for 'o'is: ", draw/(win + draw + loss))
+    print()
+
+    win, loss, draw = count_paths( tuple(("","","","","","","","","")), equive_logicaly_unique_game_states, True, True) 
+    print( "With only logically equivalent states")
+    print("The number of all games: ", win + draw + loss)
+
+#print_data()
 
 
-#print( count_paths( ("","","", "","","", "","",""), ("o","x","o", "x","o","x"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ", "","","")))
-
-#[print( x ) for x in next_states( ("o","o","o","x","x","","","","")) ]
-
-
-#num =dict( map( lambda x: (x[0], len(x[1]) ), parents.items() ))
-
-
-#for k in parents:
-#    if len( parents[ k]) == 5:
-#        print( k, "\t", terminal_state(k), "\n", parents[k], "\n")
-#print( len( game_states) ,"\t", len( set(cache.values()) ), "\t", len(parents))
-
-#uniq = list( set( cache.values() ))
-#uniq.sort( key = lambda x: x.count("x") + x.count("o"))
-
-#f = filter( lambda x: x.count("x")+x.count("o")>7, uniq )
-
-#[ print( x ) for x in list(f) ]
+play_minimax()
