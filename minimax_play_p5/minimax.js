@@ -29,8 +29,8 @@ function setup(){
 function startOver(){
     b = Array.from(b_0);
     speedvariavblethatdeterminsthespeed = 700;
-    slider.value(1);
-    rand.value(0.2);
+    //slider.value(1);
+    //rand.value(0.2);
 }
 
 function nextPly(b){
