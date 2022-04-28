@@ -6,7 +6,7 @@ let rand = null;
 let speedvariavblethatdeterminsthespeed = 700;
 let random_play = 0.2;
 
-
+//Creates the board and various buttons and sliders
 function setup(){
   let can = createCanvas(600, 400);
   can.mouseClicked(FunctionThatClicksWhenyouClick);
@@ -25,14 +25,14 @@ function setup(){
 
   play_next_move();
 }
-
+//makes the procces that occurs when you press the start over button.
 function startOver(){
     b = Array.from(b_0);
     speedvariavblethatdeterminsthespeed = 700;
     //slider.value(1);
     //rand.value(0.2);
 }
-
+//Tracks whose turn it is based of a given boardstate. 
 function nextPly(b){
   [os, xs] = counts(b)
   if( os == xs ){
@@ -41,7 +41,7 @@ function nextPly(b){
     return( "X")
   }
 }
-
+//Determins the next states possible from a given board
 function next_states( b ){
     const rv = new Array();
 
@@ -57,7 +57,7 @@ function next_states( b ){
     }
     return( rv );
 }
-
+//Counts the number of X's and O's in a given boardstate.
 function counts(b){
   let os = xs = 0;
   for( const element of b) {
@@ -279,7 +279,7 @@ function play_next_move(){
 
         if( ns.length > 0){ 
           if( Math.random()>random_play) {
-            let ind = minimax(b)[1];
+            let ind = minimax(b,0)[1];
             b = ns[ ind ];
           }
           else {
@@ -293,7 +293,7 @@ function play_next_move(){
     setTimeout( play_next_move, 700);
 }
 
-function minimax( b ){
+function minimax( b, depth ){
 
     let ts = terminal_state(b);
     let opt_score;
@@ -301,7 +301,7 @@ function minimax( b ){
 
     //checks if the current board is a terminal state
     if( ts["terminal"] ){
-        opt_score = ts["score"];
+        opt_score = ts["score"] * (1-depth/20);
         opt_index = 0;
     }
     else {
@@ -310,7 +310,7 @@ function minimax( b ){
         let ss = [];
         //puts all the next states in a list that is then put recusively through the funciton 
         for( const n of ns ){
-            ss.push(minimax(n)[0]);
+            ss.push(minimax(n, depth+1)[0]);
         } 
 
         if( nextPly(b) == "O") {
