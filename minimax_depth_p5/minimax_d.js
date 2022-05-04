@@ -1,12 +1,12 @@
-let b = [ "","","", "","","", "","","" ];
-//let b_0 = [ "","","", "","","", "","","" ];
+let b = [ "", "O", "", "", "", "O", "X", "X", "O"];
 let b_0 = [ "", "O", "", "", "", "O", "X", "X", "O"];
-let num_players = 2;
+let num_players = 1;
 let slider = null;
 let rand = null;
-let random_play = 0.2;
+let random_play = 0;
 let use_depth = false;
 let depth = null;
+let next_move = null;
 
 //Creates the board and various buttons and sliders
 function setup(){
@@ -14,23 +14,17 @@ function setup(){
   can.mouseClicked(FunctionThatClicksWhenyouClick);
 
   button = createButton('Start Over');
-  button.position(450, 300);
+  button.position(450, 150);
   button.mousePressed(startOver);
 
-  slider = createSlider(0, 2, num_players);
-  slider.position(450, 135);
-  slider.style('width', '80px');
-  
-  rand = createSlider(0,1,random_play,0);
-  rand.position(450, 200);
-  rand.style('width', '80px');
+  next_move = createButton('Next move');
+  next_move.position(450, 200);
+  next_move.mousePressed(play_next_move);
 
   depth = createCheckbox( "Use depth", use_depth )
   depth.style( 'color', color("white"));
-  depth.position(450, 265);
+  depth.position(450, 250);
   depth.changed(toggle_depth);
-
-  play_next_move();
 }
 //makes the procces that occurs when you press the start over button.
 function startOver(){
@@ -207,10 +201,6 @@ function FunctionThatClicksWhenyouClick(){
   }
 //Draws the board  
 function draw(){
-    //these are were the sliders are created. At this point in the code, they dont have any effeect. 
-    num_players = slider.value();
-    random_play = rand.value();
-
   //This sets the backround value to 0 wich is the black. 
   background(0)
   //This sets the collor of the drawn lines to white.
@@ -234,13 +224,6 @@ function draw(){
   text( b[6], 100, 300 )
   text( b[7], 182, 300 )
   text( b[8], 264, 300 )
-
-  textSize(12);
-  text( "Num players", 450, 110 );
-  text( "Lack of Skill slider", 458, 225 );
-  text( "0", 450, 170 );
-  text( "1", 480, 170 );
-  text( "2", 510, 170 ); 
 
   let dir = terminal_state(b)[ "direction" ];
   if( dir == "r1"){
@@ -302,8 +285,6 @@ function play_next_move(){
           }
         }
     }
-    
-    setTimeout( play_next_move, 700);
 }
 
 function minimax( b, depth ){
