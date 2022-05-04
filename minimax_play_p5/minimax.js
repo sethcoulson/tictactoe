@@ -1,10 +1,12 @@
 let b = [ "","","", "","","", "","","" ];
-let b_0 = [ "","","", "","","", "","","" ];
-let num_players = 1;
+//let b_0 = [ "","","", "","","", "","","" ];
+let b_0 = [ "", "O", "", "", "", "O", "X", "X", "O"];
+let num_players = 2;
 let slider = null;
 let rand = null;
 let speedvariavblethatdeterminsthespeed = 700;
-let random_play = 0.2;
+let random_play = 0;
+let use_depth = false;
 
 //Creates the board and various buttons and sliders
 function setup(){
@@ -160,49 +162,55 @@ function FunctionThatClicksWhenyouClick(){
   if( !terminal_state(b)["terminal"]){
     let next = nextPly(b);
 
-    /* Row 1 */
-    if( mouseY <= 160){
-      if(mouseX <= 160 && b[0] == ""){
-        b[0] = next
-      } else if(mouseX > 160 && mouseX <= 240 && b[1]==""){
-        b[1] = next
-      } else if(mouseX>240 && b[2]==""){
-        b[2] = next
+    if( (num_players == 1 && next == "O") || num_players == 2){
+      /* Row 1 */
+      if( mouseY <= 160){
+        if(mouseX <= 160 && b[0] == ""){
+          b[0] = next
+        } else if(mouseX > 160 && mouseX <= 240 && b[1]==""){
+          b[1] = next
+        } else if(mouseX>240 && b[2]==""){
+          b[2] = next
+        }
+        
       }
       
-    }
+      /*Row 2*/
+      if( mouseY > 160 && mouseY <= 240){
+        if(mouseX <= 160 && b[3]==""){
+          b[3] = next
+        } else if(mouseX > 160  && mouseX <= 240 && b[4]==""){
+          b[4] = next
+        } else if(mouseX>240 && b[5]==""){
+          b[5] = next
+        }
+        
+      }
     
-    /*Row 2*/
-    if( mouseY > 160 && mouseY <= 240){
-      if(mouseX <= 160 && b[3]==""){
-        b[3] = next
-      } else if(mouseX > 160  && mouseX <= 240 && b[4]==""){
-        b[4] = next
-      } else if(mouseX>240 && b[5]==""){
-        b[5] = next
-      }
-      
-    }
-  
-    /*Row 3*/
-    if( mouseY > 240 ){
-      if(mouseX <= 160 && b[6]=="" ){
-        b[6] = next
-      } else if(mouseX > 160  && mouseX <= 240 && b[7]==""){
-        b[7] = next
-      } else if(mouseX>240 && b[8]==""){
-        b[8] = next
+      /*Row 3*/
+      if( mouseY > 240 ){
+        if(mouseX <= 160 && b[6]=="" ){
+          b[6] = next
+        } else if(mouseX > 160  && mouseX <= 240 && b[7]==""){
+          b[7] = next
+        } else if(mouseX>240 && b[8]==""){
+          b[8] = next
+        }
       }
     }
   }
   }
-  
+//Draws the board  
 function draw(){
+    //these are were the sliders are created. At this point in the code, they dont have any effeect. 
     num_players = slider.value();
     random_play = rand.value();
 
+  //This sets the backround value to 0 wich is the black. 
   background(0)
+  //This sets the collor of the drawn lines to white.
   stroke(255);
+  //This sets the thickness of the drawn lines to 1. Im not sure exactuly how thick this is.
   strokeWeight(1);
 
   line( 160, 80, 160, 320 )
@@ -224,7 +232,7 @@ function draw(){
 
   textSize(12);
   text( "Num players", 450, 110 );
-  text( "Skill slider", 458, 225 );
+  text( "Lack of Skill slider", 458, 225 );
   text( "0", 450, 170 );
   text( "1", 480, 170 );
   text( "2", 510, 170 ); 
@@ -299,6 +307,10 @@ function minimax( b, depth ){
     let opt_score;
     let opt_index;
 
+    if( !use_depth ){
+      depth = 0;
+    }
+
     //checks if the current board is a terminal state
     if( ts["terminal"] ){
         opt_score = ts["score"] * (1-depth/20);
@@ -310,12 +322,14 @@ function minimax( b, depth ){
         let ss = [];
         //puts all the next states in a list that is then put recusively through the funciton 
         for( const n of ns ){
+            //Adds the depth value to each next game. 
             ss.push(minimax(n, depth+1)[0]);
         } 
-
+        //If it is 0's turn, it will find the greatset depth and put it together with the given score.
         if( nextPly(b) == "O") {
           opt_score = Math.max(...ss);
         }
+        //If it is X's turn, it will find the smallest depth and put it together with the given score.
         else{
           opt_score = Math.min(...ss);
         }
